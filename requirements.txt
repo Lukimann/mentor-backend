@@ -1,0 +1,6 @@
+postgres
+flask
+sqlalchemy
+flask_cors
+migrate
+sqlite3
