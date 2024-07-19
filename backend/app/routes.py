@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from .models import db, Volunteer, NewsletterSubscriber, Contacts
+import logging
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -33,7 +34,7 @@ def get_volunteers():
         volunteers = Volunteer.query.all()
         volunteers_list = [{'name': volunteer.name, 'email': volunteer.email, 'phone': volunteer.phone,
                             'address': volunteer.address, 'occupation': volunteer.occupation, 'country': volunteer.country,
-                            'days': volunteer.days, 'times': volunteer.times, 'motivation': volunteer.motivation} 
+                            'days': volunteer.days, 'times': volunteer.times, 'motivation': volunteer.motivation}
                            for volunteer in volunteers]
         return jsonify(volunteers_list), 200
     except Exception as e:
@@ -81,19 +82,41 @@ def get_newsletters():
         print(f"Error in get_newsletters: {str(e)}")
         return jsonify(message="An internal error occurred"), 500
 
+# @bp.route('/newsletter', methods=['POST'])
+# def add_newsletter():
+#     data = request.get_json()
+#     if not data or 'email' not in data:
+#         return jsonify(message='Invalid input'), 400
+
+#     new_subscriber = NewsletterSubscriber(
+#         email=data['email']
+#     )
+#     try:
+#         db.session.add(new_subscriber)
+#         db.session.commit()
+#         return jsonify(message='Newsletter subscription added successfully'), 201
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify(message='Failed to add subscription', error=str(e)), 500
+
+
 @bp.route('/newsletter', methods=['POST'])
-def add_newsletter():
-    data = request.get_json()
-    if not data or 'email' not in data:
-        return jsonify(message='Invalid input'), 400
-    
-    new_subscriber = NewsletterSubscriber(
-        email=data['email']
-    )
+def subscribe_to_newsletter():
+    email = request.json.get('email')
+    if not email:
+        return jsonify({'message': 'Invalid email address'}), 400
+
     try:
-        db.session.add(new_subscriber)
+        # Check if the email address already exists in the database
+        existing_subscriber = NewsletterSubscriber.query.filter_by(email=email).first()
+        if existing_subscriber:
+            return jsonify({'message': 'You are already subscribed to our newsletter'}), 200
+
+        # Create a new subscriber
+        subscriber = NewsletterSubscriber(email=email)
+        db.session.add(subscriber)
         db.session.commit()
-        return jsonify(message='Newsletter subscription added successfully'), 201
+        return jsonify({'message': 'Subscribed to newsletter successfully'}), 201
     except Exception as e:
-        db.session.rollback()
-        return jsonify(message='Failed to add subscription', error=str(e)), 500
+        logging.error(f'An error occurred: {e}')
+        return jsonify({'message': 'Failed to subscribe to newsletter'}), 500
