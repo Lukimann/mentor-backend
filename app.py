@@ -3,8 +3,8 @@ from flask import Flask, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from backend.app.models import db  # Import the db instance
-from backend.app.routes import bp  # Import the blueprint
+from backend.app.models import db  
+from backend.app.routes import bp  
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhost:5432/database_name'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'YOUR_SECRET_KEY_HERE'  # Replace with a secret key for session management
+app.config['SECRET_KEY'] = 'YOUR_SECRET_KEY_HERE'  
 
 # Initialize SQLAlchemy with the app
 db.init_app(app)
@@ -26,9 +26,8 @@ app.register_blueprint(bp)
 # Error handler for 404 (Page Not Found)
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return jsonify('Not Found'), 404
 
-# Error handler for other exceptions
 @app.errorhandler(Exception)
 def handle_exception(e):
     app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -43,4 +42,4 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.logger.debug("Starting Flask server...")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, port=5001)
